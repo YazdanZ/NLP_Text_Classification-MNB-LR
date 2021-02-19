@@ -6,7 +6,7 @@ class dic_maker():
 
     def __init__(self):
         self.corpus = []
-        self.str_path = "C:\\ETS\\COMP551- Reihane Rabbani\\Assignment2\\aclImdb_v1\\aclImdb\\train\\"
+        self.str_path = "..\\data\\aclImdb\\train\\"
         self.list_types = [self.str_path + "neg", self.str_path + "pos"]
 
     def list_maker(self):
