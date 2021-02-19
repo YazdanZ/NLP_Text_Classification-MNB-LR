@@ -16,7 +16,6 @@ imdb_dic = dict_maker.list_maker()
 
 count_vect = CountVectorizer()
 X_train_counts = count_vect.fit_transform(imdb_dic['data'])
-print(X_train_counts.shape)
 
 tfidf_transformer = TfidfTransformer()
 X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
