@@ -20,7 +20,7 @@ class dic_maker():
                     with open(file_path, encoding='utf-8') as f_input:
                         self.corpus.append(f_input.read())
             except:
-                print("hey")
+                print("listing documnets has problem")
 
         dic_output = {
             'data': self.corpus,
