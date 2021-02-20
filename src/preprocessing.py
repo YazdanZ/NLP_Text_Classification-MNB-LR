@@ -77,9 +77,6 @@ class Preprocessing:
         self.transformed_train = self.tfidf_transformer.fit_transform(vectorized_train)
         self.transformed_test = self.tfidf_transformer.transform(vectorized_test)
 
-        print(self.transformed_train.shape[0])
-        print(self.transformed_train.shape[1])
-
         # create the dataframes
         self.train_df = pd.DataFrame(self.transformed_train.toarray())
         self.test_df = pd.DataFrame(self.transformed_test.toarray())
