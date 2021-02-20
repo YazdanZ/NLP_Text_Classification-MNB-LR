@@ -6,6 +6,16 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
+from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+
+class LemmaTokenizer:
+    def __init__(self):
+        self.wnl = WordNetLemmatizer()
+
+    def __call__(self, doc):
+        return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
 
 
 class Dataset(Enum):
@@ -64,7 +74,9 @@ class Preprocessing:
         # count vectorization
         # use the built-in english stopwords
         print("Vectorizing dataset...")
-        self.vectorizer = CountVectorizer(stop_words="english")
+        self.vectorizer = CountVectorizer(
+            stop_words="english", tokenizer=LemmaTokenizer()
+        )
         vectorized_train = self.vectorizer.fit_transform(self.train["data"])
         vectorized_test = self.vectorizer.transform(self.test["data"])
         train_cols = self.vectorizer.get_feature_names()
@@ -77,28 +89,29 @@ class Preprocessing:
         self.transformed_train = self.tfidf_transformer.fit_transform(vectorized_train)
         self.transformed_test = self.tfidf_transformer.transform(vectorized_test)
 
-        # create the dataframes
-        self.train_df = pd.DataFrame(self.transformed_train.toarray())
-        self.test_df = pd.DataFrame(self.transformed_test.toarray())
-        self.train_df.columns = train_cols
-        self.test_df.columns = train_cols
+        try:
+            # create the dataframes
+            self.train_df = pd.DataFrame(self.transformed_train.toarray())
+            self.test_df = pd.DataFrame(self.transformed_test.toarray())
+            self.train_df.columns = train_cols
+            self.test_df.columns = train_cols
 
-        # also add the labels associated with each text
-        self.train_df["Class"] = self.train["target"]
-        self.test_df["Class"] = self.test["target"]
+            # also add the labels associated with each text
+            self.train_df["Class"] = self.train["target"]
+            self.test_df["Class"] = self.test["target"]
+        except MemoryError:
+            print("Not enought memory to create pandas dataframe")
 
 
-p = Preprocessing(Dataset.imdb_reviews)
-# print(p.train_df)
-# print(p.test_df)
-# y = p.train_df.pop("Class").to_numpy()
-# X = p.train_df.to_numpy()
-# y_test = p.test_df.pop("Class").to_numpy()
-# X_test = p.test_df.to_numpy()
+p = Preprocessing(Dataset.twenty_news)
 
-# clf = MultinomialNB()
-# clf.fit(X, y)
-#
-# pred = clf.predict(X_test[110:150])
-# print(pred)
-# print(accuracy_score(y_test[110:150], pred))
+y = p.train_df.pop("Class").to_numpy()
+X = p.train_df.to_numpy()
+y_test = p.test_df.pop("Class").to_numpy()
+X_test = p.test_df.to_numpy()
+
+clf = MultinomialNB()
+clf.fit(X, y)
+pred = clf.predict(X_test)
+print(pred)
+print(accuracy_score(y_test, pred))

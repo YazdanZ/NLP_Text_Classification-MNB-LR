@@ -2,9 +2,10 @@ import glob
 import os
 import json
 
+
 def get_subset(subset):
     if not os.path.exists("../data/imdb_" + subset + ".json"):
-    
+
         corpus = []
         str_path = "../data/aclImdb/"
         list_types = [str_path + subset + "/neg", str_path + subset + "/pos"]
@@ -26,8 +27,8 @@ def get_subset(subset):
         }
         with open("../data/imdb_" + subset + ".json", "w") as json_file:
             json.dump(dic_output, json_file)
-        
+
     else:
-        with open("../data/imdb_" + subset + ".json") as json_file: 
-            dic_output = json.load(json_file) 
+        with open("../data/imdb_" + subset + ".json") as json_file:
+            dic_output = json.load(json_file)
     return dic_output
