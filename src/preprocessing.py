@@ -1,11 +1,11 @@
 from enum import Enum
 import pandas as pd
+import imdb_reader
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
-import dic_maker
 
 
 class Dataset(Enum):
@@ -24,15 +24,15 @@ class Preprocessing:
         """aquire data"""
         self.dataset = dataset
         if dataset == Dataset.imdb_reviews:
-            self.preprocess_imbd()
+            self._preprocess_imbd()
         elif dataset == Dataset.twenty_news:
-            self.preprocess_20news()
+            self._preprocess_20news()
         else:
             raise IndexError("Dataset enumeration between 1 and 2")
 
-        self.vectorize_transform()
+        self._vectorize_transform()
 
-    def preprocess_20news(self):
+    def _preprocess_20news(self):
         print("Preprocessing the 20 newsgroup dataset...\n")
 
         self.train = fetch_20newsgroups(
@@ -50,12 +50,15 @@ class Preprocessing:
         print("Training set contains {n} instances".format(n=len(self.train.data)))
         print("Testing set contains {n} instances".format(n=len(self.test.data)))
 
-    def preprocess_imbd(self):
+    def _preprocess_imbd(self):
         print("Preprocessing the IMDB reviews dataset...\n")
 
-        # TODO: assign test and train subsets to the instance variable
+        self.train = imdb_reader.get_subset("train")
+        self.test = imdb_reader.get_subset("test")
+        print("Training set contains {n} instances".format(n=len(self.train["data"])))
+        print("Testing set contains {n} instances".format(n=len(self.test["data"])))
 
-    def vectorize_transform(self):
+    def _vectorize_transform(self):
         """Turn the text data into numerical feature using the bags of words representation"""
 
         # count vectorization
@@ -74,6 +77,9 @@ class Preprocessing:
         self.transformed_train = self.tfidf_transformer.fit_transform(vectorized_train)
         self.transformed_test = self.tfidf_transformer.transform(vectorized_test)
 
+        print(self.transformed_train.shape[0])
+        print(self.transformed_train.shape[1])
+
         # create the dataframes
         self.train_df = pd.DataFrame(self.transformed_train.toarray())
         self.test_df = pd.DataFrame(self.transformed_test.toarray())
@@ -85,17 +91,17 @@ class Preprocessing:
         self.test_df["Class"] = self.test["target"]
 
 
-p = Preprocessing(Dataset.twenty_news)
-print(p.train_df)
-print(p.test_df)
-y = p.train_df.pop("Class").to_numpy()
-X = p.train_df.to_numpy()
-y_test = p.test_df.pop("Class").to_numpy()
-X_test = p.test_df.to_numpy()
+p = Preprocessing(Dataset.imdb_reviews)
+# print(p.train_df)
+# print(p.test_df)
+# y = p.train_df.pop("Class").to_numpy()
+# X = p.train_df.to_numpy()
+# y_test = p.test_df.pop("Class").to_numpy()
+# X_test = p.test_df.to_numpy()
 
-clf = MultinomialNB()
-clf.fit(X, y)
-
-pred = clf.predict(X_test[110:150])
-print(pred)
-print(accuracy_score(y_test[110:150], pred))
+# clf = MultinomialNB()
+# clf.fit(X, y)
+#
+# pred = clf.predict(X_test[110:150])
+# print(pred)
+# print(accuracy_score(y_test[110:150], pred))
