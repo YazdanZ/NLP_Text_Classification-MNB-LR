@@ -8,6 +8,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from sklearn.linear_model import LogisticRegression
 
 
 class LemmaTokenizer:
@@ -40,6 +41,8 @@ class Preprocessing:
         else:
             raise IndexError("Dataset enumeration between 1 and 2")
 
+        self.train_label = self.train["target"]
+        self.test_label = self.test["target"]
         self._vectorize_transform()
 
     def _preprocess_20news(self):
@@ -75,11 +78,18 @@ class Preprocessing:
         # use the built-in english stopwords
         print("Vectorizing dataset...")
         self.vectorizer = CountVectorizer(
-            stop_words="english", tokenizer=LemmaTokenizer()
+            # A good idea would be to analyze feature selection over here
+            # also add a regex pattern
+            #  max_features=2000,
+            stop_words="english",
+            strip_accents="unicode",
+            lowercase=True,
+            tokenizer=LemmaTokenizer(),
         )
         vectorized_train = self.vectorizer.fit_transform(self.train["data"])
         vectorized_test = self.vectorizer.transform(self.test["data"])
         train_cols = self.vectorizer.get_feature_names()
+        print(len(train_cols))
 
         # term frequency–inverse document frequency tranformation
         print(
@@ -104,14 +114,13 @@ class Preprocessing:
 
 
 p = Preprocessing(Dataset.twenty_news)
+#  y = p.train_df.pop("Class").to_numpy()
+#  X = p.train_df.to_numpy()
+#  y_test = p.test_df.pop("Class").to_numpy()
+#  X_test = p.test_df.to_numpy()
 
-y = p.train_df.pop("Class").to_numpy()
-X = p.train_df.to_numpy()
-y_test = p.test_df.pop("Class").to_numpy()
-X_test = p.test_df.to_numpy()
-
-clf = MultinomialNB()
-clf.fit(X, y)
-pred = clf.predict(X_test)
+clf = MultinomialNB(0.05)
+clf.fit(p.transformed_train, p.train_label)
+pred = clf.predict(p.transformed_test)
 print(pred)
-print(accuracy_score(y_test, pred))
+print(accuracy_score(p.test_label, pred))
