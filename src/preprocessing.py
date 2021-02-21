@@ -102,8 +102,8 @@ class Preprocessing:
 
         try:
             # create the dataframes
-            self.train_df = pd.DataFrame(self.transformed_train.toarray())
-            self.test_df = pd.DataFrame(self.transformed_test.toarray())
+            self.train_df = pd.DataFrame.sparse.from_spmatrix(self.transformed_train)
+            self.test_df = pd.DataFrame.sparse.from_spmatrix(self.transformed_test)
             self.train_df.columns = train_cols
             self.test_df.columns = train_cols
 
