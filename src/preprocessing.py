@@ -9,6 +9,8 @@ from sklearn.metrics import accuracy_score
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.linear_model import LogisticRegression
+from classifier import Classifier
+from cross_validation import cross_validation_split, kfoldCV
 
 
 class LemmaTokenizer:
@@ -89,7 +91,6 @@ class Preprocessing:
         vectorized_train = self.vectorizer.fit_transform(self.train["data"])
         vectorized_test = self.vectorizer.transform(self.test["data"])
         train_cols = self.vectorizer.get_feature_names()
-        print(len(train_cols))
 
         # term frequency–inverse document frequency tranformation
         print(
@@ -114,13 +115,11 @@ class Preprocessing:
 
 
 p = Preprocessing(Dataset.twenty_news)
-#  y = p.train_df.pop("Class").to_numpy()
-#  X = p.train_df.to_numpy()
-#  y_test = p.test_df.pop("Class").to_numpy()
-#  X_test = p.test_df.to_numpy()
 
-clf = MultinomialNB(0.05)
+sets = cross_validation_split(p.transformed_train, p.train_label, 5)
+print(kfoldCV(MultinomialNB, sets, alpha=0.05))
+
+clf = MultinomialNB(alpha=0.05)
 clf.fit(p.transformed_train, p.train_label)
 pred = clf.predict(p.transformed_test)
-print(pred)
-print(accuracy_score(p.test_label, pred))
+print(Classifier.evaluate_acc(p.test_label, pred))
