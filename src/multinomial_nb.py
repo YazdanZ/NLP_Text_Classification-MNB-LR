@@ -26,21 +26,19 @@ class MultinomialNB(Classifier):
             )
 
     def predict(self, X_test):
-        prediction = [self._predict(x) for x in X_test]
-        return prediction
+        self.prediction = [self._predict(x) for x in X_test]
+        return self.prediction
 
     def _predict(self, x_test):
         posts = []
         for index, cls in enumerate(self._classes):
             prior = np.log(self._priors[index])
-            likelihood = self.get_likelihood(self._likelihoods[index, :], x_test)
+            likelihood = np.log(self._likelihoods[index, :]) * x_test.toarray()
             posteriors = np.sum(likelihood) + prior
             posts.append(posteriors)
 
         return self._classes[np.argmax(posts)]
 
-    def get_likelihood(self, class_likelihood, x):
-        return np.log(class_likelihood) * x.toarray()
-
-    def tune_hyperparams(self):
+    @staticmethod
+    def tune_hyperparams():
         pass
