@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.utils import shuffle
 from scipy.sparse import vstack
-from sklearn.naive_bayes import MultinomialNB
 from classifier import Classifier
 
 
