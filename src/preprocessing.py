@@ -4,13 +4,9 @@ import imdb_reader
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from sklearn.linear_model import LogisticRegression
 from classifier import Classifier
-from cross_validation import cross_validation_split, kfoldCV
 from multinomial_nb import MultinomialNB as mnb
 
 
@@ -115,18 +111,7 @@ class Preprocessing:
             print("Not enought memory to create pandas dataframe")
 
 
-p = Preprocessing(Dataset.imdb_reviews)
-m = mnb()
-m.fit(p.transformed_train, p.train_label)
-print(p.transformed_train.shape[1])
-print(p.transformed_test.shape[1])
-c = m.predict(p.transformed_test)
-print(Classifier.evaluate_acc(p.test_label, c))
-
-#  sets = cross_validation_split(p.transformed_train, p.train_label, 5)
-#  print(kfoldCV(MultinomialNB, sets, alpha=0.05))
-#
-#  clf = MultinomialNB(alpha=0.05)
-#  clf.fit(p.transformed_train, p.train_label)
-#  pred = clf.predict(p.transformed_test)
-#  print(Classifier.evaluate_acc(p.test_label, pred))
+p = Preprocessing(Dataset.twenty_news)
+clf = mnb()
+clf.fit(p.transformed_train, p.train_label)
+print(Classifier.evaluate_acc(clf.predict(p.transformed_test), p.test_label))
