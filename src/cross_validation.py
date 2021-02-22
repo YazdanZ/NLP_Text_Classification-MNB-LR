@@ -41,6 +41,6 @@ def kfoldCV(model, sets, **kwargs):
     accuracy = []
     for k_set in sets:
         classifier.fit(k_set[0], k_set[1])
-        predictions = classifier.predict(k_set[2])
-        accuracy.append(Classifier.evaluate_acc(predictions, k_set[3]))
+        classifier.predict(k_set[2])
+        accuracy.append(classifier.evaluate_acc(k_set[3]))
     return np.array(accuracy).mean()
