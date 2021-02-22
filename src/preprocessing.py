@@ -76,26 +76,26 @@ class Preprocessing:
         # count vectorization
         # use the built-in english stopwords
         print("Vectorizing dataset...")
-        self.vectorizer = CountVectorizer(
+        vectorizer = CountVectorizer(
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
             #  max_features=2000,
             stop_words="english",
             strip_accents="unicode",
             lowercase=True,
-            tokenizer=LemmaTokenizer(),
+            #  tokenizer=LemmaTokenizer(),
         )
-        vectorized_train = self.vectorizer.fit_transform(self.train["data"])
-        vectorized_test = self.vectorizer.transform(self.test["data"])
-        train_cols = self.vectorizer.get_feature_names()
+        vectorized_train = vectorizer.fit_transform(self.train["data"])
+        vectorized_test = vectorizer.transform(self.test["data"])
+        train_cols = vectorizer.get_feature_names()
 
         # term frequency–inverse document frequency tranformation
         print(
             "Transforming vector using term frequency–inverse document frequency transformation..."
         )
-        self.tfidf_transformer = TfidfTransformer()
-        self.transformed_train = self.tfidf_transformer.fit_transform(vectorized_train)
-        self.transformed_test = self.tfidf_transformer.transform(vectorized_test)
+        tfidf_transformer = TfidfTransformer()
+        self.transformed_train = tfidf_transformer.fit_transform(vectorized_train)
+        self.transformed_test = tfidf_transformer.transform(vectorized_test)
 
         try:
             # create the dataframes
@@ -110,8 +110,19 @@ class Preprocessing:
         except MemoryError:
             print("Not enought memory to create pandas dataframe")
 
+    def get_train_test(self):
+        """get train and test transformed features (bag of words)
+        and their respective labels"""
+        return (
+            self.transformed_train,
+            self.train_label,
+            self.transformed_test,
+            self.test_label,
+        )
+
 
 p = Preprocessing(Dataset.twenty_news)
-clf = mnb()
-clf.fit(p.transformed_train, p.train_label)
-print(Classifier.evaluate_acc(clf.predict(p.transformed_test), p.test_label))
+clf = mnb(alpha=0.05)
+X_train, y_train, X_test, y_test = p.get_train_test()
+clf.fit(X_train, y_train)
+print(Classifier.evaluate_acc(clf.predict(X_test), y_test))
