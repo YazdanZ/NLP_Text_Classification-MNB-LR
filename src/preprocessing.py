@@ -6,8 +6,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from classifier import Classifier
-from multinomial_nb import MultinomialNB as mnb
 
 
 class LemmaTokenizer:
@@ -119,10 +117,3 @@ class Preprocessing:
             self.transformed_test,
             self.test_label,
         )
-
-
-p = Preprocessing(Dataset.twenty_news)
-clf = mnb(alpha=0.05)
-X_train, y_train, X_test, y_test = p.get_train_test()
-clf.fit(X_train, y_train)
-print(Classifier.evaluate_acc(clf.predict(X_test), y_test))

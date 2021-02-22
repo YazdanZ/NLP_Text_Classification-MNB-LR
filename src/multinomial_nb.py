@@ -1,5 +1,6 @@
 from classifier import Classifier
 import numpy as np
+from cross_validation import cross_validation_split, kfoldCV
 
 
 class MultinomialNB(Classifier):
@@ -17,6 +18,7 @@ class MultinomialNB(Classifier):
         self._likelihoods = np.zeros((len(self._classes), n_features))
 
         for index, cls in enumerate(self._classes):
+            cls = int(cls)
             # calculate priors
             X_class = X[cls == y]
             self._priors[cls] = X_class.shape[0] / float(n_samples)
@@ -26,21 +28,27 @@ class MultinomialNB(Classifier):
             )
 
     def predict(self, X_test):
-        prediction = [self._predict(x) for x in X_test]
-        return prediction
+        self.prediction = [self._predict(x) for x in X_test]
+        return self.prediction
 
     def _predict(self, x_test):
         posts = []
         for index, cls in enumerate(self._classes):
             prior = np.log(self._priors[index])
-            likelihood = self.get_likelihood(self._likelihoods[index, :], x_test)
+            likelihood = np.log(self._likelihoods[index, :]) * x_test.toarray()
             posteriors = np.sum(likelihood) + prior
             posts.append(posteriors)
 
         return self._classes[np.argmax(posts)]
 
-    def get_likelihood(self, class_likelihood, x):
-        return np.log(class_likelihood) * x.toarray()
+    @staticmethod
+    def tune_hyperparams(X_train, y_train, folds):
+        sets = cross_validation_split(X_train, y_train, folds)
+        accuracies = []
+        # alphas with 0.5 steps in [0.5, 5[
+        alphas = np.arange(0.5, 5, 0.5)
+        for alpha in alphas:
+            accuracy = kfoldCV(MultinomialNB, sets, alpha=alpha)
+            accuracies.append(accuracy)
 
-    def tune_hyperparams(self):
-        pass
+        return accuracies
