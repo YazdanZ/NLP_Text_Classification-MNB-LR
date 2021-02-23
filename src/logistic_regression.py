@@ -18,7 +18,7 @@ class LogisticRegression(Classifier):
             y_pred = self._linear_model(X)
 
             # backpropagation
-            dw = 1 / num_samples * np.dot(X.T, y_pred - y)
+            dw = 1 / num_samples * X.transpose().dot((y_pred - y))
             db = 1 / num_samples * np.sum(y_pred - y)
             self.weights -= self.learning_rate * dw
             self.bias -= self.learning_rate * db
@@ -33,7 +33,7 @@ class LogisticRegression(Classifier):
 
     def _linear_model(self, X):
         # hypothetesis prediction
-        lin_model = np.dot(X, self.weights) + self.bias
+        lin_model = X.dot(self.weights) + self.bias
         return self._sigmoid(lin_model)
 
     @staticmethod
