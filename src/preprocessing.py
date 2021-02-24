@@ -43,6 +43,8 @@ class Preprocessing:
         else:
             raise IndexError("Dataset enumeration between 1 and 2")
 
+        self._clean_train()
+
         # take a random sample (fraction = self.frac) of the train data
         sample_n = len(self.train["data"])
         idx = np.random.choice(
@@ -52,6 +54,19 @@ class Preprocessing:
         self.train_label = np.array(self.train["target"])[idx]
         self.test_label = self.test["target"]
         self._vectorize_transform()
+
+    def _clean_train(self):
+        self.train["data"] = [word.replace("\n", " ") for word in self.train["data"]]
+        self.train["data"] = [word.replace("\r", " ") for word in self.train["data"]]
+        self.train["data"] = [word.replace("\t", " ") for word in self.train["data"]]
+        self.train["data"] = [word.replace('"', " ") for word in self.train["data"]]
+        self.train["data"] = [word.lower() for word in self.train["data"]]
+        punctuation_signs = list("?:!.,;@*-=")
+        for sign in punctuation_signs:
+            self.train["data"] = [
+                word.replace(sign, " ") for word in self.train["data"]
+            ]
+        self.train["data"] = [word.replace("'s", " ") for word in self.train["data"]]
 
     def _preprocess_20news(self):
         print("Preprocessing the 20 newsgroup dataset...\n")
