@@ -42,11 +42,9 @@ class MultinomialNB(Classifier):
         return self._classes[np.argmax(posts)]
 
     @staticmethod
-    def tune_hyperparams(X_train, y_train, folds):
+    def tune_hyperparams(X_train, y_train, folds, alphas):
         sets = cross_validation_split(X_train, y_train, folds)
         accuracies = []
-        # alphas with 0.5 steps in [0.5, 5[
-        alphas = np.arange(0.5, 5, 0.5)
         for alpha in alphas:
             accuracy = kfoldCV(MultinomialNB, sets, alpha=alpha)
             accuracies.append(accuracy)

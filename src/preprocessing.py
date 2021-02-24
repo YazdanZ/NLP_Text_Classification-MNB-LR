@@ -1,6 +1,8 @@
 from enum import Enum
 import pandas as pd
 import imdb_reader
+import random
+import numpy as np
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -28,8 +30,11 @@ class Preprocessing:
     - Dataset 2: IMDB Reviews:
     """
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, frac=1):
         """aquire data"""
+        # fraction of the training set to take
+        self.frac = frac
+
         self.dataset = dataset
         if dataset == Dataset.imdb_reviews:
             self._preprocess_imbd()
@@ -38,7 +43,13 @@ class Preprocessing:
         else:
             raise IndexError("Dataset enumeration between 1 and 2")
 
-        self.train_label = self.train["target"]
+        # take a random sample (fraction = self.frac) of the train data
+        sample_n = len(self.train["data"])
+        idx = np.random.choice(
+            np.arange(sample_n), int(sample_n * self.frac), replace=False
+        )
+        self.train_X = np.array(self.train["data"])[idx]
+        self.train_label = np.array(self.train["target"])[idx]
         self.test_label = self.test["target"]
         self._vectorize_transform()
 
@@ -73,7 +84,7 @@ class Preprocessing:
 
         # count vectorization
         # use the built-in english stopwords
-        print("Vectorizing dataset...")
+        print("\nVectorizing and lemmatizing dataset...")
         vectorizer = CountVectorizer(
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
@@ -83,7 +94,7 @@ class Preprocessing:
             lowercase=True,
             #  tokenizer=LemmaTokenizer(),
         )
-        vectorized_train = vectorizer.fit_transform(self.train["data"])
+        vectorized_train = vectorizer.fit_transform(self.train_X)
         vectorized_test = vectorizer.transform(self.test["data"])
         train_cols = vectorizer.get_feature_names()
 
@@ -103,7 +114,7 @@ class Preprocessing:
             self.test_df.columns = train_cols
 
             # also add the labels associated with each text
-            self.train_df["Class"] = self.train["target"]
+            self.train_df["Class"] = self.train_label
             self.test_df["Class"] = self.test["target"]
         except MemoryError:
             print("Not enought memory to create pandas dataframe")
