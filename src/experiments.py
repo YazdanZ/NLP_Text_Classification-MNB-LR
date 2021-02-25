@@ -28,8 +28,9 @@ twenty_news_preprocessor = Preprocessing(Dataset.twenty_news)
     y_test_20news,
 ) = twenty_news_preprocessor.get_train_test()
 
-
 print(SEPARATOR)
+
+
 #  # hyperparameter tuning for naive bayes
 #  # test for alphas with 0.5 in [0.5, 5[
 #  alphas = np.arange(0.5, 3, 0.5)
@@ -61,21 +62,22 @@ print(SEPARATOR)
 #  rs.fit(X_train_20news, y_train_20news)
 #  resuts = pd.DataFrame(rs.cv_results_)
 #  print(resuts)
-#  resuts.to_csv("out.csv", index=False)
 
 
 # ---------------------------------------------------------------------------
 # 1- Conduct multiclass classification on the 20 news group dataset,
 # and binary classification on the IMDB Reviews.
-#  mnb = MultinomialNB(alpha=0.05)
-#  mnb.fit(X_train_20news, y_train_20news)
-#  mnb.predict(X_test_20news)
-#  mnb.evaluate_acc(y_test_20news)
+mnb = MultinomialNB(alpha=0.05)
+mnb.fit(X_train_20news, y_train_20news)
+mnb.predict(X_test_20news)
+mnb_acc_20news = mnb.evaluate_acc(y_test_20news)
+print(mnb_acc_20news)
 
 mnb = MultinomialNB(alpha=0.05)
 mnb.fit(X_train_imdb, y_train_imdb)
 mnb.predict(X_test_imdb)
-print(mnb.evaluate_acc(y_test_imdb))
+mnb_acc_imdb = mnb.evaluate_acc(y_test_imdb)
+print(mnb_acc_imdb)
 # ---------------------------------------------------------------------------
 # 2- In a single table, compare and report the performance of the
 # performance of naive Bayes and logistic regression on each of the two

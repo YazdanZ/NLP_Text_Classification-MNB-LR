@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
-
+# Lemmatisation tokenizer from the Natural Language Toolkit (nlk)
 class LemmaTokenizer:
     def __init__(self):
         self.wnl = WordNetLemmatizer()
@@ -30,9 +30,9 @@ class Preprocessing:
     - Dataset 2: IMDB Reviews:
     """
 
-    def __init__(self, dataset, frac=1):
+    def __init__(self, dataset, frac=1, vectorize=True):
         """aquire data"""
-        # fraction of the training set to take
+        # fraction of the training set to take (used in part3 experiments)
         self.frac = frac
 
         self.dataset = dataset
@@ -43,6 +43,7 @@ class Preprocessing:
         else:
             raise IndexError("Dataset enumeration between 1 and 2")
 
+        # feature engineering before vectorization and lemmatizing
         self._clean_train()
 
         # take a random sample (fraction = self.frac) of the train data
@@ -53,19 +54,25 @@ class Preprocessing:
         self.train_X = np.array(self.train["data"])[idx]
         self.train_label = np.array(self.train["target"])[idx]
         self.test_label = self.test["target"]
-        self._vectorize_transform()
+
+        if vectorize:
+            self._vectorize_transform()
 
     def _clean_train(self):
+        # convert all tabs, endlines, carriage returns to simple space delimiters
         self.train["data"] = [word.replace("\n", " ") for word in self.train["data"]]
         self.train["data"] = [word.replace("\r", " ") for word in self.train["data"]]
         self.train["data"] = [word.replace("\t", " ") for word in self.train["data"]]
         self.train["data"] = [word.replace('"', " ") for word in self.train["data"]]
         self.train["data"] = [word.lower() for word in self.train["data"]]
+
+        # replace punctuation signs with space delimiters
         punctuation_signs = list("?:!.,;@*-=")
         for sign in punctuation_signs:
             self.train["data"] = [
                 word.replace(sign, " ") for word in self.train["data"]
             ]
+        # 's => " "
         self.train["data"] = [word.replace("'s", " ") for word in self.train["data"]]
 
     def _preprocess_20news(self):
@@ -103,7 +110,8 @@ class Preprocessing:
         vectorizer = CountVectorizer(
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
-            #  max_features=2000,
+            #  token_pattern=r'(?u)\b\w\w+\b',
+            max_features=20,
             stop_words="english",
             strip_accents="unicode",
             lowercase=True,
@@ -143,3 +151,9 @@ class Preprocessing:
             self.transformed_test,
             self.test_label,
         )
+
+    def custom_vectorizer(self, **kwargs):
+        vectorizer = CountVectorizer(**kwargs)
+        vectorized_train = vectorizer.fit_transform(self.train_X)
+        feature_names = vectorizer.get_feature_names()
+        return feature_names, vectorized_train
