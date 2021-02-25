@@ -115,7 +115,6 @@ class Preprocessing:
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
             #  token_pattern=r'(?u)\b\w\w+\b',
-            #  max_features=20,
             stop_words=Preprocessing.stop_words,
             strip_accents="unicode",
             lowercase=True,
