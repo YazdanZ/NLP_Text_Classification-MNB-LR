@@ -34,11 +34,14 @@ class Preprocessing:
 
     stop_words = text.ENGLISH_STOP_WORDS.union(["br", "ax"])
 
-    def __init__(self, dataset, frac=1, vectorize=True, verbose=False):
+    def __init__(
+        self, dataset, max_features=None, frac=1, vectorize=True, verbose=False
+    ):
         """aquire data"""
         # fraction of the training set to take (used in part3 experiments)
         self.frac = frac
         self._verbose = verbose
+        self._max_features = max_features
 
         self.dataset = dataset
         if dataset == Dataset.imdb_reviews:
@@ -119,18 +122,30 @@ class Preprocessing:
         # use the built-in english stopwords
         if self._verbose:
             print("\nVectorizing and lemmatizing dataset...")
-        vectorizer = CountVectorizer(
-            # A good idea would be to analyze feature selection over here
-            # also add a regex pattern
-            #  token_pattern=r'(?u)\b\w\w+\b',
-            stop_words=Preprocessing.stop_words,
-            strip_accents="unicode",
-            lowercase=True,
-            #  tokenizer=LemmaTokenizer(),
-        )
+        if self._max_features is None:
+            vectorizer = CountVectorizer(
+                # also add a regex pattern
+                #  token_pattern=r'(?u)\b\w\w+\b',
+                stop_words=Preprocessing.stop_words,
+                strip_accents="unicode",
+                lowercase=True,
+                #  tokenizer=LemmaTokenizer(),
+            )
+        else:
+            vectorizer = CountVectorizer(
+                # also add a regex pattern
+                #  token_pattern=r'(?u)\b\w\w+\b',
+                max_features=self._max_features,
+                stop_words=Preprocessing.stop_words,
+                strip_accents="unicode",
+                lowercase=True,
+                #  tokenizer=LemmaTokenizer(),
+            )
+
         vectorized_train = vectorizer.fit_transform(self.train_X)
         vectorized_test = vectorizer.transform(self.test["data"])
         train_cols = vectorizer.get_feature_names()
+        self.features = train_cols
         if self._verbose:
             print("Number of unique words :", len(train_cols))
 

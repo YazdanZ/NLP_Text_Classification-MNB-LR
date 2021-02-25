@@ -16,8 +16,10 @@ SEPARATOR = "\n" + 40 * "-" + "\n" + 40 * "-" + "\n"
 
 # Preprocess textual data
 imdb_preprocessor = Preprocessing(Dataset.imdb_reviews, verbose=True)
+imdb_feature_n = len(imdb_preprocessor.features)
 print(SEPARATOR)
 twenty_news_preprocessor = Preprocessing(Dataset.twenty_news, verbose=True)
+twenty_features_n = len(twenty_news_preprocessor.features)
 
 # Get lemmatized, cleaned and vectorized train and test sets as sparse arrays
 (
@@ -162,3 +164,34 @@ def part2():
 
 # ---------------------------------------------------------------------------
 # 3- Compare the accuracy of models with reduced features
+def part3():
+    def feature_size_acc(dataset, model, **kwargs):
+        fractions = [0.2, 0.4, 0.6, 0.8, 1]
+        accuracies = []
+
+        for frac in fractions:
+            if dataset == Dataset.imdb_reviews:
+                dataset_features = imdb_feature_n
+            elif dataset == Dataset.twenty_news:
+                dataset_features = twenty_features_n
+            num_features = int(frac * dataset_features)
+            preprocessor = Preprocessing(dataset, max_features=num_features)
+            set_ = preprocessor.get_train_test()
+            acc = evaluate_model(
+                model, dataset, set_, verbose=False, show_plot=False, **kwargs
+            )
+            accuracies.append(acc)
+        df = pd.DataFrame(columns=["Fraction of features", "Accuracy"])
+        df["Fraction of features"] = fractions
+        df["Accuracy"] = accuracies
+        df.plot.line(x="Fraction of features", y="Accuracy")
+        plt.title("training set feature size vs accuracy {}-{}".format(dataset, model))
+        plt.show()
+
+    feature_size_acc(Dataset.imdb_reviews, MultinomialNB, alpha=0.04)
+    feature_size_acc(Dataset.twenty_news, MultinomialNB, alpha=0.04)
+    feature_size_acc(Dataset.imdb_reviews, LR)
+    feature_size_acc(Dataset.twenty_news, LR)
+
+
+part3()
