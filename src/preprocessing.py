@@ -1,13 +1,17 @@
 from enum import Enum
 import pandas as pd
 import imdb_reader
+import random
+import numpy as np
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction import text
 
 
+# Lemmatisation tokenizer from the Natural Language Toolkit (nlk)
 class LemmaTokenizer:
     def __init__(self):
         self.wnl = WordNetLemmatizer()
@@ -28,8 +32,13 @@ class Preprocessing:
     - Dataset 2: IMDB Reviews:
     """
 
-    def __init__(self, dataset):
+    stop_words = text.ENGLISH_STOP_WORDS.union(["br", "ax"])
+
+    def __init__(self, dataset, frac=1, vectorize=True):
         """aquire data"""
+        # fraction of the training set to take (used in part3 experiments)
+        self.frac = frac
+
         self.dataset = dataset
         if dataset == Dataset.imdb_reviews:
             self._preprocess_imbd()
@@ -38,9 +47,37 @@ class Preprocessing:
         else:
             raise IndexError("Dataset enumeration between 1 and 2")
 
-        self.train_label = self.train["target"]
+        # feature engineering before vectorization and lemmatizing
+        self._clean_train()
+
+        # take a random sample (fraction = self.frac) of the train data
+        sample_n = len(self.train["data"])
+        idx = np.random.choice(
+            np.arange(sample_n), int(sample_n * self.frac), replace=False
+        )
+        self.train_X = np.array(self.train["data"])[idx]
+        self.train_label = np.array(self.train["target"])[idx]
         self.test_label = self.test["target"]
-        self._vectorize_transform()
+
+        if vectorize:
+            self._vectorize_transform()
+
+    def _clean_train(self):
+        # convert all tabs, endlines, carriage returns to simple space delimiters
+        self.train["data"] = [word.replace("\n", " ") for word in self.train["data"]]
+        self.train["data"] = [word.replace("\r", " ") for word in self.train["data"]]
+        self.train["data"] = [word.replace("\t", " ") for word in self.train["data"]]
+        self.train["data"] = [word.replace('"', " ") for word in self.train["data"]]
+        self.train["data"] = [word.lower() for word in self.train["data"]]
+
+        # replace punctuation signs with space delimiters
+        punctuation_signs = list("?:!.,;@*-=")
+        for sign in punctuation_signs:
+            self.train["data"] = [
+                word.replace(sign, " ") for word in self.train["data"]
+            ]
+        # 's => " "
+        self.train["data"] = [word.replace("'s", " ") for word in self.train["data"]]
 
     def _preprocess_20news(self):
         print("Preprocessing the 20 newsgroup dataset...\n")
@@ -73,19 +110,21 @@ class Preprocessing:
 
         # count vectorization
         # use the built-in english stopwords
-        print("Vectorizing dataset...")
+        print("\nVectorizing and lemmatizing dataset...")
         vectorizer = CountVectorizer(
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
-            #  max_features=2000,
-            stop_words="english",
+            #  token_pattern=r'(?u)\b\w\w+\b',
+            #  max_features=20,
+            stop_words=Preprocessing.stop_words,
             strip_accents="unicode",
             lowercase=True,
             #  tokenizer=LemmaTokenizer(),
         )
-        vectorized_train = vectorizer.fit_transform(self.train["data"])
+        vectorized_train = vectorizer.fit_transform(self.train_X)
         vectorized_test = vectorizer.transform(self.test["data"])
         train_cols = vectorizer.get_feature_names()
+        print("Number of unique words :", len(train_cols))
 
         # term frequency–inverse document frequency tranformation
         print(
@@ -103,7 +142,7 @@ class Preprocessing:
             self.test_df.columns = train_cols
 
             # also add the labels associated with each text
-            self.train_df["Class"] = self.train["target"]
+            self.train_df["Class"] = self.train_label
             self.test_df["Class"] = self.test["target"]
         except MemoryError:
             print("Not enought memory to create pandas dataframe")
@@ -117,3 +156,12 @@ class Preprocessing:
             self.transformed_test,
             self.test_label,
         )
+
+    def custom_vectorizer(self, X=None, **kwargs):
+        vectorizer = CountVectorizer(**kwargs)
+        if X == None:
+            vectorized_train = vectorizer.fit_transform(self.train_X)
+        else:
+            vectorized_train = vectorizer.fit_transform(X)
+        feature_names = vectorizer.get_feature_names()
+        return feature_names, vectorized_train
