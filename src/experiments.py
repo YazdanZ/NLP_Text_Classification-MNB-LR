@@ -76,89 +76,50 @@ alphas = np.arange(0.1, 2, 0.5)
 # and binary classification on the IMDB Reviews.
 best_alpha_imdb = best_alpha_20news = 0.04
 
-mnb = MultinomialNB(alpha=best_alpha_20news)
-mnb.fit(X_train_20news, y_train_20news)
-pred = mnb.predict(X_test_20news)
-mnb_acc_20news = mnb.evaluate_acc(y_test_20news)
-f1 = f1_score(pred, y_test_20news, average="weighted")
-print(f"Accuracy of Multinomial Naive Bayes on the 20news dataset: {mnb_acc_20news}")
-print(f"F1 score of Multinomial Naive Bayes on the 20news dataset: {f1}")
-con_matrix = confusion_matrix(y_test_20news, pred)
-df_cm = pd.DataFrame(con_matrix, range(20), range(20))
-sns.heatmap(df_cm, annot=True)
-plt.ylabel("Predicted Class")
-plt.xlabel("True Class")
-plt.show()  # Fig10
 
-print(SEPARATOR)
+def evaluate_model(model, dataset, **kwargs):
+    clf = model(**kwargs)
+    if dataset == Dataset.twenty_news:
+        X_train, y_train, X_test, y_test = (
+            X_train_20news,
+            y_train_20news,
+            X_test_20news,
+            y_test_20news,
+        )
+        rg = 20
+    elif dataset == Dataset.imdb_reviews:
+        X_train, y_train, X_test, y_test = (
+            X_train_imdb,
+            y_train_imdb,
+            X_test_imdb,
+            y_test_imdb,
+        )
+        rg = 2
+    else:
+        raise ValueError("Dataset doesn't exist")
+    clf.fit(X_train, y_train)
+    pred = clf.predict(X_test)
+    acc = accuracy_score(y_test, pred)
+    f1 = f1_score(pred, y_test, average="weighted")
+    msg1 = "Accuracy of the {} model on the {} dataset: {}".format(model, dataset, acc)
+    msg2 = "F1 score of the {} model on the {} dataset: {}".format(model, dataset, f1)
+    print(msg1)
+    print(msg2)
+    con_matrix = confusion_matrix(y_test, pred)
+    df_cm = pd.DataFrame(con_matrix, range(rg), range(rg))
+    sns.heatmap(df_cm, annot=True)
+    plt.ylabel("Predicted Class")
+    plt.xlabel("True Class")
+    plt.show()  # Fig10
 
-mnb = MultinomialNB(alpha=best_alpha_imdb)
-mnb.fit(X_train_imdb, y_train_imdb)
-pred = mnb.predict(X_test_imdb)
-mnb_acc_imdb = mnb.evaluate_acc(y_test_imdb)
-f1 = f1_score(pred, y_test_imdb, average="weighted")
-print(f"Accuracy of Multinomial Naive Bayes on the IMDB dataset: {mnb_acc_imdb}")
-print(f"F1 score of Multinomial Naive Bayes on the IMDB dataset: {f1}")
-con_matrix = confusion_matrix(y_test_imdb, pred)
-df_cm = pd.DataFrame(con_matrix, range(2), range(2))
-sns.heatmap(df_cm, annot=True)
-plt.ylabel("Predicted Class")
-plt.xlabel("True Class")
-plt.show()  # Fig11
 
-print(SEPARATOR)
-#
-lr = LR()
-lr.fit(X_train_20news, y_train_20news)
-pred = lr.predict(X_test_20news)
-lr_accuracy = accuracy_score(y_test_20news, pred)
-f1 = f1_score(pred, y_test_20news, average="weighted")
-print(f"Accuracy of Logistic Regression on the 20news dataset: {lr_accuracy}")
-print(f"F1 score of Logistic Regression on the 20news dataset: {f1}")
-con_matrix = confusion_matrix(y_test_20news, pred)
-df_cm = pd.DataFrame(con_matrix, range(20), range(20))
-sns.heatmap(df_cm, annot=True)
-plt.ylabel("Predicted Class")
-plt.xlabel("True Class")
-plt.show()
-
-print(SEPARATOR)
-
-lr = LR()
-lr.fit(X_train_imdb, y_train_imdb)
-pred = lr.predict(X_test_imdb)
-lr_accuracy = accuracy_score(y_test_imdb, pred)
-f1 = f1_score(pred, y_test_imdb, average="weighted")
-print(f"Accuracy of Logistic Regression on the IMDB dataset: {lr_accuracy}")
-print(f"F1 score of Logistic Regression on the IMDB dataset: {f1}")
-con_matrix = confusion_matrix(y_test_imdb, pred)
-df_cm = pd.DataFrame(con_matrix, range(2), range(2))
-sns.heatmap(df_cm, annot=True)
-plt.ylabel("Predicted Class")
-plt.xlabel("True Class")
-plt.show()
-
-# Our own binary logistic_regression model
-lr = LogisticRegression(learning_rate=0.01, num_iters=1000)
-lr.fit(X_train_imdb, y_train_imdb)
-pred = lr.predict(X_test_imdb)
-lr_accuracy = accuracy_score(y_test_imdb, pred)
-f1 = f1_score(pred, y_test_imdb, average="weighted")
-print(
-    f"Accuracy of Logistic Regression (from scratch) on the IMDB dataset: {lr_accuracy}"
+evaluate_model(MultinomialNB, Dataset.imdb_reviews, alpha=0.05)
+evaluate_model(MultinomialNB, Dataset.twenty_news, alpha=0.05)
+evaluate_model(LR, Dataset.imdb_reviews)
+evaluate_model(LR, Dataset.twenty_news)
+evaluate_model(
+    LogisticRegression, Dataset.imdb_reviews, learning_rate=0.01, num_iters=10000
 )
-print(f"F1 score of Logistic Regression (from scratch) on the IMDB dataset: {f1}")
-con_matrix = confusion_matrix(y_test_imdb, pred)
-df_cm = pd.DataFrame(con_matrix, range(2), range(2))
-sns.heatmap(df_cm, annot=True)
-plt.ylabel("Predicted Class")
-plt.xlabel("True Class")
-plt.show()
-# ---------------------------------------------------------------------------
-# 2- In a single table, compare and report the performance of the
-# performance of naive Bayes and logistic regression on each of the two
-# datasets (with their best hyperparameters), and highlight the winner for
-# each dataset and overall.
 
 # ---------------------------------------------------------------------------
 # 3- With a plot, compare the accuracy of the two models as a
