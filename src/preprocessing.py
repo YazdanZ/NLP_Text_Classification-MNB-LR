@@ -111,7 +111,7 @@ class Preprocessing:
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
             #  token_pattern=r'(?u)\b\w\w+\b',
-            max_features=20,
+            #  max_features=20,
             stop_words="english",
             strip_accents="unicode",
             lowercase=True,
@@ -120,6 +120,7 @@ class Preprocessing:
         vectorized_train = vectorizer.fit_transform(self.train_X)
         vectorized_test = vectorizer.transform(self.test["data"])
         train_cols = vectorizer.get_feature_names()
+        print("Number of unique words :", len(train_cols))
 
         # term frequency–inverse document frequency tranformation
         print(
