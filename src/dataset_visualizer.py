@@ -22,25 +22,31 @@ def countplot(x, y, title=""):
     plt.show()
 
 
-#  imdb_p = Preprocessing(Dataset.imdb_reviews, vectorize=False)
-#  twenty_news_p = Preprocessing(Dataset.twenty_news, vectorize=False)
-#
-#  imdb_words_before, imdb_vect_before = imdb_p.custom_vectorizer(
-#  max_features=20, strip_accents="unicode"
-#  )
-#  imdb_words_after, imdb_vect_after = imdb_p.custom_vectorizer(
-#  max_features=20, stop_words="english", strip_accents="unicode", lowercase=True
-#  )
-#  twenty_words_before, twenty_vect_before = twenty_news_p.custom_vectorizer(
-#  max_features=20, strip_accents="unicode"
-#  )
-#  twenty_words_after, twenty_vect_after = twenty_news_p.custom_vectorizer(
-#  max_features=20, stop_words="english", strip_accents="unicode", lowercase=True
-#  )
-#  countplot(imdb_vect_before, imdb_words_before)  # Fig1
-#  countplot(imdb_vect_after, imdb_words_after)  # Fig2
-#  countplot(twenty_vect_before, twenty_words_before)  # Fig3
-#  countplot(twenty_vect_after, twenty_words_after)  # Fig4
+imdb_p = Preprocessing(Dataset.imdb_reviews, vectorize=False)
+twenty_news_p = Preprocessing(Dataset.twenty_news, vectorize=False)
+
+imdb_words_before, imdb_vect_before = imdb_p.custom_vectorizer(
+    max_features=20, strip_accents="unicode"
+)
+imdb_words_after, imdb_vect_after = imdb_p.custom_vectorizer(
+    max_features=20,
+    stop_words=Preprocessing.stop_words,
+    strip_accents="unicode",
+    lowercase=True,
+)
+twenty_words_before, twenty_vect_before = twenty_news_p.custom_vectorizer(
+    max_features=20, strip_accents="unicode"
+)
+twenty_words_after, twenty_vect_after = twenty_news_p.custom_vectorizer(
+    max_features=20,
+    stop_words=Preprocessing.stop_words,
+    strip_accents="unicode",
+    lowercase=True,
+)
+countplot(imdb_vect_before, imdb_words_before)  # Fig1
+countplot(imdb_vect_after, imdb_words_after)  # Fig2
+countplot(twenty_vect_before, twenty_words_before)  # Fig3
+countplot(twenty_vect_after, twenty_words_after)  # Fig4
 
 # total count article per newsgroup
 #  preproc = Preprocessing(Dataset.twenty_news)

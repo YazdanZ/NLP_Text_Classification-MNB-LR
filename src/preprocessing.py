@@ -8,6 +8,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction import text
+
 
 # Lemmatisation tokenizer from the Natural Language Toolkit (nlk)
 class LemmaTokenizer:
@@ -29,6 +31,8 @@ class Preprocessing:
     - Dataset 1: 20 news group dataset:
     - Dataset 2: IMDB Reviews:
     """
+
+    stop_words = text.ENGLISH_STOP_WORDS.union(["br", "ax"])
 
     def __init__(self, dataset, frac=1, vectorize=True):
         """aquire data"""
@@ -112,7 +116,7 @@ class Preprocessing:
             # also add a regex pattern
             #  token_pattern=r'(?u)\b\w\w+\b',
             #  max_features=20,
-            stop_words="english",
+            stop_words=Preprocessing.stop_words,
             strip_accents="unicode",
             lowercase=True,
             #  tokenizer=LemmaTokenizer(),
