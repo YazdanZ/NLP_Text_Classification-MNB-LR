@@ -53,6 +53,16 @@ wordcloud(neg_txt, "negative reviews wordcloud")  # Fig8
 # --------------------------------------------------------------------------
 
 # positive review vs negative review word count
+pos = [len(string) for string in imdb_train["data"][12500:]]
+neg = [len(string) for string in imdb_train["data"][:12500]]
+
+plt.hist(pos, color="g", label="positive", bins=30, alpha=0.6)
+plt.hist(neg, color="r", label="negative", bins=30, alpha=0.6)
+plt.xlim(0, 8000)
+plt.title("positive vs negative review wordcount distribution")
+plt.legend()
+plt.show()
+
 # --------------------------------------------------------------------------
 
 # top 20 words before and after removing stop words
