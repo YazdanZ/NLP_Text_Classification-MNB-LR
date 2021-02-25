@@ -34,10 +34,11 @@ class Preprocessing:
 
     stop_words = text.ENGLISH_STOP_WORDS.union(["br", "ax"])
 
-    def __init__(self, dataset, frac=1, vectorize=True):
+    def __init__(self, dataset, frac=1, vectorize=True, verbose=False):
         """aquire data"""
         # fraction of the training set to take (used in part3 experiments)
         self.frac = frac
+        self._verbose = verbose
 
         self.dataset = dataset
         if dataset == Dataset.imdb_reviews:
@@ -80,7 +81,8 @@ class Preprocessing:
         self.train["data"] = [word.replace("'s", " ") for word in self.train["data"]]
 
     def _preprocess_20news(self):
-        print("Preprocessing the 20 newsgroup dataset...\n")
+        if self._verbose:
+            print("Preprocessing the 20 newsgroup dataset...\n")
 
         self.train = fetch_20newsgroups(
             subset="train",
@@ -94,23 +96,29 @@ class Preprocessing:
             random_state=0,
             remove=(["headers", "footers", "quotes"]),
         )
-        print("Training set contains {n} instances".format(n=len(self.train.data)))
-        print("Testing set contains {n} instances".format(n=len(self.test.data)))
+        if self._verbose:
+            print("Training set contains {n} instances".format(n=len(self.train.data)))
+            print("Testing set contains {n} instances".format(n=len(self.test.data)))
 
     def _preprocess_imbd(self):
-        print("Preprocessing the IMDB reviews dataset...\n")
+        if self._verbose:
+            print("Preprocessing the IMDB reviews dataset...\n")
 
         self.train = imdb_reader.get_subset("train")
         self.test = imdb_reader.get_subset("test")
-        print("Training set contains {n} instances".format(n=len(self.train["data"])))
-        print("Testing set contains {n} instances".format(n=len(self.test["data"])))
+        if self._verbose:
+            print(
+                "Training set contains {n} instances".format(n=len(self.train["data"]))
+            )
+            print("Testing set contains {n} instances".format(n=len(self.test["data"])))
 
     def _vectorize_transform(self):
         """Turn the text data into numerical feature using the bags of words representation"""
 
         # count vectorization
         # use the built-in english stopwords
-        print("\nVectorizing and lemmatizing dataset...")
+        if self._verbose:
+            print("\nVectorizing and lemmatizing dataset...")
         vectorizer = CountVectorizer(
             # A good idea would be to analyze feature selection over here
             # also add a regex pattern
@@ -123,12 +131,13 @@ class Preprocessing:
         vectorized_train = vectorizer.fit_transform(self.train_X)
         vectorized_test = vectorizer.transform(self.test["data"])
         train_cols = vectorizer.get_feature_names()
-        print("Number of unique words :", len(train_cols))
+        if self._verbose:
+            print("Number of unique words :", len(train_cols))
 
-        # term frequency–inverse document frequency tranformation
-        print(
-            "Transforming vector using term frequency–inverse document frequency transformation..."
-        )
+            # term frequency–inverse document frequency tranformation
+            print(
+                "Transforming vector using term frequency–inverse document frequency transformation..."
+            )
         tfidf_transformer = TfidfTransformer()
         self.transformed_train = tfidf_transformer.fit_transform(vectorized_train)
         self.transformed_test = tfidf_transformer.transform(vectorized_test)
