@@ -157,8 +157,11 @@ class Preprocessing:
             self.test_label,
         )
 
-    def custom_vectorizer(self, **kwargs):
+    def custom_vectorizer(self, X=None, **kwargs):
         vectorizer = CountVectorizer(**kwargs)
-        vectorized_train = vectorizer.fit_transform(self.train_X)
+        if X == None:
+            vectorized_train = vectorizer.fit_transform(self.train_X)
+        else:
+            vectorized_train = vectorizer.fit_transform(X)
         feature_names = vectorizer.get_feature_names()
         return feature_names, vectorized_train

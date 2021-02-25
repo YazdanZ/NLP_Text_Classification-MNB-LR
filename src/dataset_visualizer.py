@@ -1,13 +1,55 @@
 from preprocessing import Preprocessing, Dataset
 from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction import text
 import seaborn as sns
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
+from wordcloud import WordCloud
+from imdb_reader import get_subset
 
-# top 10 words for + vs -
+# top words for + vs -
+stop_words = text.ENGLISH_STOP_WORDS.union(
+    [
+        "br",
+        "ax",
+        "character",
+        "characters",
+        "did",
+        "does",
+        "don",
+        "film",
+        "films",
+        "movie",
+        "movies",
+        "really",
+        "like",
+        "just",
+        "time",
+    ]
+)
 
+
+def wordcloud(txt, title):
+    cloud = WordCloud(
+        stopwords=stop_words,
+        collocations=False,
+        max_font_size=80,
+        background_color="white",
+    ).generate(txt)
+    plt.figure(figsize=(16, 12))
+    plt.imshow(cloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.title(title)
+    plt.show()
+
+
+imdb_train = get_subset("train")
+pos_txt = "".join(imdb_train["data"][12500:])
+neg_txt = "".join(imdb_train["data"][:12500])
+wordcloud(pos_txt, "positive reviews wordcloud")  # Fig7
+wordcloud(neg_txt, "negative reviews wordcloud")  # Fig8
 # --------------------------------------------------------------------------
 
 # positive review vs negative review word count
