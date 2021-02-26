@@ -100,8 +100,8 @@ class Preprocessing:
             remove=(["headers", "footers", "quotes"]),
         )
         if self._verbose:
-            print("Training set contains {n} instances".format(n=len(self.train.data)))
-            print("Testing set contains {n} instances".format(n=len(self.test.data)))
+            print("Training set contains {n} samples".format(n=len(self.train.data)))
+            print("Testing set contains {n} samples".format(n=len(self.test.data)))
 
     def _preprocess_imbd(self):
         if self._verbose:

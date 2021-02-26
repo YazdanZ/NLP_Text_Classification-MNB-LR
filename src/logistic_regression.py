@@ -38,4 +38,17 @@ class LogisticRegression(Classifier):
 
     @staticmethod
     def tune_hyperparams(X_train, y_train, folds):
-        pass
+        sets = cross_validation_split(X_train, y_train, folds)
+        accuracies = []
+        params = []
+        lrs = [0.1, 1, 10, 100]
+        iterations = [100, 1000]
+        for lr in lrs:
+            for it in iterations:
+                accuracy = kfoldCV(
+                    LogisticRegression, sets, learning_rate=lr, num_iters=it
+                )
+                accuracies.append(accuracy)
+                params.append((lr, it))
+
+        return accuracies, params
