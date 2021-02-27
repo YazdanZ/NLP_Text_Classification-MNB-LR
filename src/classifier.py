@@ -2,10 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class Classifier(ABC):
-    def evaluate_acc(self, target_labels, true_labels=None):
+    def evaluate_acc(self, target_labels, true_labels):
         """Evaluate the model accuracy"""
-        if true_labels == None:
-            true_labels = self.prediction
         sum = 0
         for y in range(len(true_labels)):
             if true_labels[y] == target_labels[y]:

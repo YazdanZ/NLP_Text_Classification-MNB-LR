@@ -2,17 +2,24 @@ import numpy as np
 import pandas as pd
 import operator
 from preprocessing import Preprocessing, Dataset
+from logistic_regression import LogisticRegression
 from multinomial_nb import MultinomialNB
 from cross_validation import cross_validation_split, kfoldCV
 from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression as LR
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix, plot_roc_curve
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 SEPARATOR = "\n" + 40 * "-" + "\n" + 40 * "-" + "\n"
 
 # Preprocess textual data
-imdb_preprocessor = Preprocessing(Dataset.imdb_reviews)
+imdb_preprocessor = Preprocessing(Dataset.imdb_reviews, verbose=True)
+imdb_feature_n = len(imdb_preprocessor.features)
 print(SEPARATOR)
-twenty_news_preprocessor = Preprocessing(Dataset.twenty_news)
+twenty_news_preprocessor = Preprocessing(Dataset.twenty_news, verbose=True)
+twenty_features_n = len(twenty_news_preprocessor.features)
 
 # Get lemmatized, cleaned and vectorized train and test sets as sparse arrays
 (
@@ -31,72 +38,185 @@ twenty_news_preprocessor = Preprocessing(Dataset.twenty_news)
 print(SEPARATOR)
 
 
-#  # hyperparameter tuning for naive bayes
-#  # test for alphas with 0.5 in [0.5, 5[
-#  alphas = np.arange(0.5, 3, 0.5)
-#
-#  # 20news dataset
-#  scores_20news = MultinomialNB.tune_hyperparams(
-#      X_train_20news, y_train_20news, 5, alphas
-#  )
-#  index, max_acc = max(enumerate(scores_20news), key=operator.itemgetter(1))
-#  best_alpha_20news = alphas[index]
-#
-#  # IMDB dataset
-#  scores_imdb = MultinomialNB.tune_hyperparams(X_train_imdb, y_train_imdb, 5, alphas)
-#  index, max_acc = max(enumerate(scores_imdb), key=operator.itemgetter(1))
-#  best_alpha_imdb = alphas[index]
+# hyperparameter tuning for naive bayes
+# test for alphas with 0.5 in [0.5, 5[
+alphas = np.arange(0.1, 2, 0.5)
+
+# 20news dataset
+scores_20news = MultinomialNB.tune_hyperparams(
+    X_train_20news, y_train_20news, 5, alphas
+)
+index, max_acc = max(enumerate(scores_20news), key=operator.itemgetter(1))
+best_alpha_20news = alphas[index]
+print(best_alpha_20news)
+
+# IMDB dataset
+scores_imdb = MultinomialNB.tune_hyperparams(X_train_imdb, y_train_imdb, 5, alphas)
+index, max_acc = max(enumerate(scores_imdb), key=operator.itemgetter(1))
+best_alpha_imdb = alphas[index]
+print(best_alpha_imdb)
 
 # hyperparameter tuning for Logistic Regression
 # 20news dataset
-#  rs = RandomizedSearchCV(
-#  LogisticRegression(solver="lbfgs"),
-#  {
-#  "max_iter": np.arange(100, 500, 20),
-#  "C": [0.001, 0.01, 0.1, 1, 10, 100],
-#  },
-#  return_train_score=False,
-#  n_iter=10,
-#  cv=5,
-#  )
-#  rs.fit(X_train_20news, y_train_20news)
-#  resuts = pd.DataFrame(rs.cv_results_)
-#  print(resuts)
+rs = RandomizedSearchCV(
+    LR(solver="lbfgs"),
+    {
+        "max_iter": np.arange(100, 500, 20),
+        "C": [0.001, 0.01, 0.1, 1, 10, 100],
+    },
+    return_train_score=False,
+    n_iter=10,
+    cv=5,
+)
+rs.fit(X_train_20news, y_train_20news)
+resuts = pd.DataFrame(rs.cv_results_)
+print(resuts)
+print("best parameters for logistic regression:", rs.best_params_)
+
+print(SEPARATOR)
+
+rs = RandomizedSearchCV(
+    LR(solver="lbfgs"),
+    {
+        "max_iter": np.arange(100, 500, 20),
+        "C": [0.001, 0.01, 0.1, 1, 10, 100],
+    },
+    return_train_score=False,
+    n_iter=10,
+    cv=5,
+)
+rs.fit(X_train_imdb, y_train_imdb)
+resuts = pd.DataFrame(rs.cv_results_)
+print(resuts)
+print("best parameters for logistic regression:", rs.best_params_)
+
+lreg = LogisticRegression()
+accuracies, params = lreg.tune_hyperparams(X_train_imdb, y_train_imdb, 5)
+print(accuracies)
+print(params)
 
 
 # ---------------------------------------------------------------------------
 # 1- Conduct multiclass classification on the 20 news group dataset,
 # and binary classification on the IMDB Reviews.
-mnb = MultinomialNB(alpha=0.05)
-mnb.fit(X_train_20news, y_train_20news)
-mnb.predict(X_test_20news)
-mnb_acc_20news = mnb.evaluate_acc(y_test_20news)
-print(mnb_acc_20news)
+best_alpha_imdb = best_alpha_20news = 0.04
 
-mnb = MultinomialNB(alpha=0.05)
-mnb.fit(X_train_imdb, y_train_imdb)
-mnb.predict(X_test_imdb)
-mnb_acc_imdb = mnb.evaluate_acc(y_test_imdb)
-print(mnb_acc_imdb)
-# ---------------------------------------------------------------------------
-# 2- In a single table, compare and report the performance of the
-# performance of naive Bayes and logistic regression on each of the two
-# datasets (with their best hyperparameters), and highlight the winner for
-# each dataset and overall.
+
+def evaluate_model(model, dataset, sets=None, verbose=True, show_plot=True, **kwargs):
+    clf = model(**kwargs)
+    if dataset == Dataset.twenty_news:
+        X_train, y_train, X_test, y_test = (
+            X_train_20news,
+            y_train_20news,
+            X_test_20news,
+            y_test_20news,
+        )
+        rg = 20
+    elif dataset == Dataset.imdb_reviews:
+        X_train, y_train, X_test, y_test = (
+            X_train_imdb,
+            y_train_imdb,
+            X_test_imdb,
+            y_test_imdb,
+        )
+        rg = 2
+    else:
+        raise ValueError("Dataset doesn't exist")
+    if sets is not None:
+        X_train, y_train, X_test, y_test = sets
+    clf.fit(X_train, y_train)
+    pred = clf.predict(X_test)
+    acc = accuracy_score(y_test, pred)
+    f1 = f1_score(pred, y_test, average="weighted")
+    if verbose:
+        msg1 = "Accuracy of the {} model on the {} dataset: {}".format(
+            model, dataset, acc
+        )
+        msg2 = "F1 score of the {} model on the {} dataset: {}".format(
+            model, dataset, f1
+        )
+        print(msg1)
+        print(msg2)
+    if show_plot:
+        con_matrix = confusion_matrix(y_test, pred)
+        df_cm = pd.DataFrame(con_matrix, range(rg), range(rg))
+        sns.heatmap(df_cm, annot=True)
+        plt.ylabel("Predicted Class")
+        plt.xlabel("True Class")
+        plt.show()  # Fig10
+    return acc
+
+
+def part1():
+    evaluate_model(MultinomialNB, Dataset.imdb_reviews, alpha=0.05)
+    evaluate_model(MultinomialNB, Dataset.twenty_news, alpha=0.05)
+    evaluate_model(LR, Dataset.imdb_reviews)
+    evaluate_model(LR, Dataset.twenty_news)
+    evaluate_model(
+        LogisticRegression, Dataset.imdb_reviews, learning_rate=0.01, num_iters=10000
+    )
+
+    clf = LR()
+    clf.fit(X_train_imdb, y_train_imdb)
+    plot_roc_curve(clf, X_test_imdb, y_test_imdb)
+    plt.show()
+
 
 # ---------------------------------------------------------------------------
-# 3- With a plot, compare the accuracy of the two models as a
+# 2- With a plot, compare the accuracy of the two models as a
 # function of the size of dataset (by controlling the training size).
+def part2():
+    def dataset_size_acc(dataset, model, **kwargs):
+        fractions = [0.2, 0.4, 0.6, 0.8, 1]
+        accuracies = []
+
+        for frac in fractions:
+            preprocessor = Preprocessing(dataset, frac=frac)
+            set_ = preprocessor.get_train_test()
+            acc = evaluate_model(
+                model, dataset, sets=set_, verbose=False, show_plot=False, **kwargs
+            )
+            accuracies.append(acc)
+        df = pd.DataFrame(columns=["Training set fraction", "Accuracy"])
+        df["Training set fraction"] = fractions
+        df["Accuracy"] = accuracies
+        df.plot.line(x="Training set fraction", y="Accuracy")
+        plt.title("training set fraction size vs accuracy {}-{}".format(dataset, model))
+        plt.show()
+
+    dataset_size_acc(Dataset.imdb_reviews, MultinomialNB, alpha=0.04)
+    dataset_size_acc(Dataset.twenty_news, MultinomialNB, alpha=0.04)
+    dataset_size_acc(Dataset.imdb_reviews, LR)
+    dataset_size_acc(Dataset.twenty_news, LR)
+
 
 # ---------------------------------------------------------------------------
-# For this part, you might implement logistic regression from scratch
-# (and try different learning rates,investigate different stopping criteria
-# for the gradient descent), try linear regression for predicting ratings in
-# the IMDB data, try different text embedding methods as alternatives to bag
-# of words. You are also welcome and encouraged to try any other model covered
-# in the class, and you are free to implement them yourself or use any Python
-# library that has their implementation, e.g. the from the scikit-learn
-# package. Of course, you do not need to do all of these things, but look
-# at them as suggestions and try to demonstrate curiosity, creativity, rigour,
-# and an understanding of the course material in how you run your chosen
-# experiments and how you report on them in your write-up.
+# 3- Compare the accuracy of models with reduced features
+def part3():
+    def feature_size_acc(dataset, model, **kwargs):
+        fractions = [0.2, 0.4, 0.6, 0.8, 1]
+        accuracies = []
+
+        for frac in fractions:
+            if dataset == Dataset.imdb_reviews:
+                dataset_features = imdb_feature_n
+            elif dataset == Dataset.twenty_news:
+                dataset_features = twenty_features_n
+            num_features = int(frac * dataset_features)
+            preprocessor = Preprocessing(dataset, max_features=num_features)
+            set_ = preprocessor.get_train_test()
+            acc = evaluate_model(
+                model, dataset, set_, verbose=False, show_plot=False, **kwargs
+            )
+            accuracies.append(acc)
+        df = pd.DataFrame(columns=["Fraction of features", "Accuracy"])
+        df["Fraction of features"] = fractions
+        df["Accuracy"] = accuracies
+        df.plot.line(x="Fraction of features", y="Accuracy")
+        plt.title("training set feature size vs accuracy {}-{}".format(dataset, model))
+        plt.show()
+
+    feature_size_acc(Dataset.imdb_reviews, MultinomialNB, alpha=0.04)
+    feature_size_acc(Dataset.twenty_news, MultinomialNB, alpha=0.04)
+    feature_size_acc(Dataset.imdb_reviews, LR)
+    feature_size_acc(Dataset.twenty_news, LR)
