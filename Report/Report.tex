@@ -5,8 +5,9 @@
 \usepackage{graphicx}
 \usepackage{multirow}
 \usepackage{subfig}
+\usepackage[utf8]{inputenc}
 \graphicspath{ {./images/} }
-
+\usepackage{biblatex}
 
 \begin{document}
 
@@ -24,17 +25,17 @@
 \begin{abstract}
     In this project, we studied the performance of linear classification models, namely multinomial naive Bayes and logistic regression on two textual datasets for binary and multiclass classification. Although the logistic regression model outperformed multinomial naive Bayes on the IMDb dataset in terms of accuracy by 5\% (87\% vs 82\%), both models achieved similar accuracies when applied on the 20newsgroup dataset with about 70\%. Notwithstanding, it is worth mentioning that the naive Bayes model is computationally more expensive than the logistic regression model, making logistic regression faster and more energy-efficient classifier. We used 5-fold cross-validation to tune the hyperparameters of our models on both datasets to achieve the best performance. We compared the models implemented from scratch to Scikit learn models where applicable. For instance, our logistic regression model showed better accuracy for binary classification on the IMDb dataset than the Scikit-learn model.
 
-    Furthermore, we explored the impact of using subsets of training data and features on the accuracy of our models. We observed only slight changes in the models' accuracy as a smaller set of features was utilised. However, while decreasing the number of features improved the models' performance on the IMDb dataset, it somewhat decreased the performance on the 20newsgroup dataset. We found that the performance of the models on the 20newsgroup dataset depended more heavily on the amount of information they were trained on compared to the IMDb dataset. For instance, while enlarging the size of data the models were trained on increased the accuracy on both datasets, this gain in accuracy was more significant on the 20newgroup dataset. These findings are consistent with the results in [2]. To further evaluate our models, performance metrics such as the ROC curve and confusion matrix were studied.
+    Furthermore, we explored the impact of using subsets of training data and features on the accuracy of our models. We observed only slight changes in the models' accuracy as a smaller set of features was utilised. However, while decreasing the number of features improved the models' performance on the IMDb dataset, it somewhat decreased the performance on the 20newsgroup dataset. We found that the performance of the models on the 20newsgroup dataset depended more heavily on the amount of information they were trained on compared to the IMDb dataset. For instance, while enlarging the size of data the models were trained on increased the accuracy on both datasets, this gain in accuracy was more significant on the 20newgroup dataset. These findings are consistent with the results in [1]. To further evaluate our models, performance metrics such as the ROC curve and confusion matrix were studied.
 \end{abstract}
 
 \section{Introduction}
 Although information is available in many forms, text is probably the largest repository of human knowledge. Nevertheless, analyzing huge amounts of unstructured text data from emails, social media conversations, chats, and reviews is extremely challenging. Not only manually processing an enormous amount of text data is time-consuming, but it is expensive, error-prone, and tedious. Text analysis can have a range of methods and techniques including text classification, clustering, word sentence disambiguation, to name but a few. Text classification itself has a wide range of applications in sentiment analysis, intent detection and topic modelling.
 
-In this domain, preprocessing techniques are required for converting these documents to structured documents [1]. Before converting raw textual data to numerical data, we followed some steps to clean and preprocess the datasets effectively. We worked with the bag-of-words model which is a simplifying representation in natural language processing commonly used in methods of document classification where the occurrence of words are used as features for training a classifier.
+In this domain, preprocessing techniques are required for converting these documents to structured documents [2]. Before converting raw textual data to numerical data, we followed some steps to clean and preprocess the datasets effectively. We worked with the bag-of-words model which is a simplifying representation in natural language processing commonly used in methods of document classification where the occurrence of words are used as features for training a classifier.
 
 Linear classification models are used for multiclass and binary classifications. Identifying the weight of a word in a text and how much is the existence importance of that word in the text is evaluated by the number of times that word is seen in the text. TF-IDF is a statistical measure enabling us to scale the weight of a word in the text. It was demonstrated in [3] that using TF-IDF scores instead of raw word frequencies improved the performance of multinomial naive Bayes.
 
-In this work, we utilized multinomial naive Bayes and linear regression models. We concluded that the linear regression model is more accurate in performing binary classification on the IMDb reviews dataset whereas, multinomial naive Bayes outperforms logistic regression for multiclass classification on the 20newsgroup dataset. It is noteworthy that rather than using other naive Bayes methods such as Gaussian naive Bayes and Bernoulli naive Bayes, we used multinomial naive Bayes, a logarithm based classifier, which is more suitable for the classification of textual data [2, 4]. The results of implemented models on the IMDb reviews dataset are comparable with outcomes in [5].
+In this work, we utilized multinomial naive Bayes and linear regression models. We concluded that the linear regression model is more accurate in performing binary classification on the IMDb reviews dataset whereas, multinomial naive Bayes outperforms logistic regression for multiclass classification on the 20newsgroup dataset. It is noteworthy that rather than using other naive Bayes methods such as Gaussian naive Bayes and Bernoulli naive Bayes, we used multinomial naive Bayes, a logarithm based classifier, which is more suitable for the classification of textual data [1, 4]. The results of implemented models on the IMDb reviews dataset are comparable with outcomes in [5].
 
 \section{Datasets}
 Two datasets are subjects of analysis in this project: “Twenty Newsgroups text dataset” and “Large movie IMDB review dataset”.  Twenty Newsgroups is a standard dataset fetched from the sklearn library, containing 18846 samples (posts) and 20 classes (different newsgroups). This dataset is divided into 11314 training and 7532 testing samples. The IMDb review dataset encompasses 50k samples in which the training set and testing set are equally split. The training set is divided into positive and negative reviews, in other words, binary sentiment polarity labels where a negative review has a rating smaller or equal to 4 out of 10, a positive review has a rating greater or equal to 7 out of 10 and reviews with more neutral ratings are not included.
@@ -139,9 +140,21 @@ While reducing the number of training samples diminishes some of the features, m
 
 
 \section{Discussion and Conclusion}
+To conclude, we preprocessed and vectorized two textual datasets by performing different feature engineering techniques. We then implemented multinomial naive Bayes and logistic regression to conduct multiclass and binary classification on them. After hyperparameter tuning using the implemented k-fold cross-validation, we evaluated the performance of our models. Logistic regression exceeded multinomial naive Bayes on the IMDb reviews dataset while both classifiers performed similarly on the 20newsgroup dataset. Finally, to improve the time efficiency of our models, we examined selective feature and training data reduction. We concluded that selective feature reduction was a better approach to speed up the classifiers. However, a combination of the two mentioned approaches may result in better performance; this can be a subject for future works. Using the “Bag of Words” method for text classification has its downsides. The first and foremost is that the sequence of words is ignored. Alternatives to this method or modifications such as the use of n-grams would be a subject for future investigations.
 
 \section{Statement of Contribution}
+Seyed Yazdan Zinati wrote the code for the models, cross-validation, experiments, visualizations, and preprocessing. Seyedbehnam Mashari wrote the code for the IMDb reader and researched the naive Bayes model with MohammadHadi Foroutan. The report was written by all members.
 
 \newpage
-% add references here
+\begin{thebibliography}{widest entry}
+    \bibitem[1]{cite_key1} A. O. Adi and E. Çelebi, "Classification of 20 News Group with Naïve Bayes Classifier," 2014 22nd Signal Processing and Communications Applications Conference (SIU), Trabzon, Turkey, 2014, pp. 2150-2153, doi: 10.1109/SIU.2014.6830688.
+
+    \bibitem[2] K. Albishre, M. Albathan and Y. Li, "Effective 20 Newsgroups Dataset Cleaning," 2015 IEEE/WIC/ACM International Conference on Web Intelligence and Intelligent Agent Technology (WI-IAT), Singapore, 2015, pp. 98-101, doi: 10.1109/WI-IAT.2015.90.
+
+    \bibitem[3] Kibriya, Ashraf M., et al. "Multinomial naive bayes for text categorization revisited." Australasian Joint Conference on Artificial Intelligence. Springer, Berlin, Heidelberg, 2004.
+    \bibitem[4] McCallum, Andrew, and Kamal Nigam. "A comparison of event models for naive bayes text classification." AAAI-98 workshop on learning for text categorization. Vol. 752. No. 1. 1998.
+
+    \bibitem[5] S. Tripathi, R. Mehrotra, V. Bansal and S. Upadhyay, "Analyzing Sentiment using IMDb Dataset," 2020 12th International Conference on Computational Intelligence and Communication Networks (CICN), Bhimtal, India, 2020, pp. 30-33, doi: 10.1109/CICN49253.2020.9242570.
+
+\end{thebibliography}
 \end{document}
