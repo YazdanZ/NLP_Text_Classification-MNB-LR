@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[10pt]{article}
 \usepackage[margin = 0.5in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage{blindtext}
@@ -69,7 +69,7 @@ Once the raw text files have been feature engineered, cleaned, and lemmatized, t
 \section{Results}
 Two classification models particularly multinomial naive Bayes and logistic regression are applied to both datasets. We wrote the multinomial naive Bayes and logistic regression models from scratch, able to perform multiclass and binary classification respectively. To tune the hyperparameters of our models, we performed 5-fold cross-validation using our implementation. The hyperparameter for multinomial naive Bayes is alpha, the smoothing factor. Learning rate, maximum iterations, and the inverse of regularization strength constitute our hyperparameters for Logistic regression. Due to the cross-validation being time-consuming, we used a randomized search as an alternative to an exhaustive search in some cases. The alpha leading to the highest accuracy using multinomial naive Bayes was found to be equal to 0.01 and 0.61 for the 20newsgroup , and IMDb reviews dataset correspondingly.  As for logistic regression, a learning rate of 10, a max iteration of 320, and an inverse of regularization strength of 10 achieved the highest accuracy for both datasets. We then evaluated the performance of our models using accuracy and weighted F1 score stated in Table 1. F1 score is an appropriate measure used to balance Precision and Recall when there is an uneven class distribution.
 
-\begin{table}
+\begin{table}[h]
     \caption {Comparison of the two classification models on both datasets}
     \centering
     \begin{tabular}{|l|l|l|l|l|}
@@ -86,6 +86,57 @@ Two classification models particularly multinomial naive Bayes and logistic regr
                                                  \hline
     \end{tabular}
 \end{table}
+
+As can be seen from Table 1, the logistic regression model outperforms naive Bayes on the IMDb reviews dataset by approximately 5\%, resulting in an accuracy of 87\%. On the other hand, both models score similarly in performing multiclass classification on the 20newsgroup dataset. It is however noted that the naive Bayes model slightly betters logistic regression by roughly 1\%. We compare the performance of models implemented from scratch with the Scikit-learn implementation. It is asserted that our models perform similarly to the Scikit-learn model for the classification on both datasets.
+
+Besides evaluating the performance of our classifiers, we run additional investigations using the ROC curve and confusion matrices. You can find these studies in more detail in the submitted Notebook. The ROC curve of the Logistic regression classifier on the IMDB reviews dataset is illustrated in Figure 3. It can be considered as a performance metric of our classification model and a summary of the key metrics obtained through the confusion matrix in different thresholds. As it can be witnessed in Figure 2, the ROC curve of our logistic regression model is sufficiently close to the ROC curve of a perfect classifier with an AUC of 95\%.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{Fig10}
+    \caption{ROC of logistic regression on the IMDb dataset}
+\end{figure}
+
+It is noteworthy that although the number of positive and negative reviews are equal in the IMDb dataset, word counts in positive reviews are larger than negative ones.  It can be considered as an uneven dataset that introduces complexities mainly because the input of our model is words and not documents. As can be seen in Figure 4(b), positive reviews have a higher word count compared to negative ones. Interestingly, the number of false positives is higher than the number of false negatives on the IMDb reviews dataset using both models as shown in Figure 5. Besides, the total number of predicted positives (true positives plus false positives) is larger than the total number of predicted negatives (true negatives plus false negatives). The related calculations can be found below for logistic regression. It can be inferred that the trained model tends to predict positive reviews than negative ones.
+
+
+\begin{centering}
+    $(TP + FP) = 110,000 + 17,000 = 127,000 > (TN + FN) = 110,000 + 15,000 = 125,000$\\
+\end{centering}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{Fig9}
+    \caption{Word count distribution of positive and negative reviews}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \subfloat[\centering]{{\includegraphics[height=4.9cm]{Fig11} }}%
+    \quad
+    \subfloat[\centering]{{\includegraphics[height=4.9cm]{Fig12} }}%
+    \label{fig:wordcloud}%
+    \caption{Confusion matrix on the IMDb reviews dataset (a) logistic regression (b) multinomial naive bayes }%
+\end{figure}
+
+The classification task on both datasets is very time, memory, and energy consuming. To address memory consumption, we implemented our models to directly input and work with sparse matrices. However, gaining higher speed is still a challenge that should be dealt with. To speed up the process of classification, an initial approach would be to reduce the size of the data that the models are trained on. Reducing the training size, would not only lessens features due to having less unique words, but also the number of samples. To analyze this approach, we evaluated the accuracy of our classifiers with 20, 40, 60, 80 and 100\% of the training data. The results of this experiment can be seen in Figure 6. Figure 6(a) and 6(b) present the accuracy of logistic regression on the 20newsgroup and IMDb reviews dataset respectively. It can be inferred that while the accuracy of the model on both datasets heightens with the rise of training data, this increase in accuracy is much more significant on the 20newsgroup dataset (8\% vs 1.2\%). While this is a decent approach to increasing time efficiency on the IMDb dataset, it comes at the detriment of accuracy on the 20newsgroup dataset. Similar results are also observed while performing this experiment on the multinomial naive Bayes classifier which can be found in the Notebook.
+\begin{figure}[h]
+    \centering
+    \subfloat[\centering]{{\includegraphics[height=4.9cm]{Fig13} }}%
+    \quad
+    \subfloat[\centering]{{\includegraphics[height=4.9cm]{Fig14} }}%
+    \caption{Training size vs accuracy using logistic regression (a) 20newsgroup dataset and (b) IMDb dataset}%
+\end{figure}
+While reducing the number of training samples diminishes some of the features, many important features become ignored. Therefore, to achieve the same goal of increasing time efficiency while maintaining accuracy high, we reduce the size of the training data by selectively keeping the most significant words (features). Contrary to the previous approach, feature reduction does not result in important features being ignored. We run this experiment by each time taking 20, 40, 60, 80, and 100\% of features, the results of which are shown in Figure 7 for multinomial naive Bayes. We conclude from Figure 7 that in contrast with the previous approach, the accuracy of the models increased with the reduction of features on the IMDb dataset. However, while the accuracy on the 20newsgroup dataset still decreased, this drop in accuracy is not as considerable as the previous experiment (1.2\% vs 8\%).
+
+\begin{figure}[h]
+    \centering
+    \subfloat[\centering]{{\includegraphics[height=4.9cm]{Fig16} }}%
+    \quad
+    \subfloat[\centering]{{\includegraphics[height=4.94cm]{Fig15} }}%
+    \caption{Feature size vs accuracy using multinomial naive Bayes (a) 20newsgroup dataset and (b) IMDb dataset}%
+\end{figure}
+
 
 \section{Discussion and Conclusion}
 
